@@ -597,29 +597,69 @@ th.sort-desc .sort-icon::before { content: "\25BC"; }
 /* Mobile: cards instead of table */
 @media (max-width: 640px) {
     .results-table thead { display: none; }
-    .results-table, .results-table tbody, .results-table tr, .results-table td { display: block; width: 100%; }
+    .results-table, .results-table tbody { display: block; width: 100%; }
+
+    /* Card = a 3-row grid: title, then compact meta (大会/箱/枝), then rank + price.
+       Placing cells by grid-row/grid-column (not DOM order) lets 大会/箱番号/枝番号
+       sit on one compact line instead of each taking a full labeled row - this is
+       what actually makes a card scannable at a glance instead of a tall stack. */
     .results-table tr {
+        display: grid;
+        grid-template-columns: auto auto auto 1fr;
+        column-gap: 12px;
+        row-gap: 6px;
+        align-items: baseline;
         border: 1px solid var(--color-border);
         border-radius: var(--radius);
         margin-bottom: 10px;
-        padding: 10px 12px;
+        padding: 12px 14px;
     }
     .results-table tbody tr:hover { background: transparent; }
+
     .results-table td {
-        border-bottom: none;
-        padding: 5px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
+        display: block;
+        padding: 0;
+        border: none;
     }
-    .results-table td::before {
-        content: attr(data-label);
-        color: var(--color-text-muted);
+
+    .col-detail {
+        grid-row: 1;
+        grid-column: 1 / -1;
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--color-text);
+    }
+
+    .col-auction, .col-box, .col-branch {
+        grid-row: 2;
         font-size: 0.78rem;
-        flex-shrink: 0;
+        color: var(--color-text-muted);
+        white-space: nowrap;
     }
-    .col-detail { flex-direction: column !important; align-items: flex-start !important; }
-    .col-price { text-align: left; }
+    .col-auction { grid-column: 1; }
+    .col-box { grid-column: 2; }
+    .col-branch { grid-column: 3; }
+    .col-auction::before, .col-box::before, .col-branch::before {
+        content: attr(data-label);
+        margin-right: 2px;
+    }
+
+    .col-rank {
+        grid-row: 3;
+        grid-column: 1;
+        align-self: center;
+    }
+
+    .col-price {
+        grid-row: 3;
+        grid-column: 2 / -1;
+        justify-self: end;
+        text-align: right;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-text);
+    }
+
     .app-footer { flex-direction: column; text-align: center; }
 }

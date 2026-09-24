@@ -4,7 +4,10 @@ After=network.target postgresql.service
 
 [Service]
 Type=simple
-User=www-data
+# Change this if your VPS admin/deploy user has a different name. Running as
+# this user (rather than www-data) keeps the app directory's ownership
+# consistent with whoever does `git pull` / edits files there day to day.
+User=deploy
 WorkingDirectory=/opt/auction-search
 EnvironmentFile=/opt/auction-search/.env
 ExecStart=/usr/bin/node src/server.js

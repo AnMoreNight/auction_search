@@ -230,14 +230,23 @@ Check logs if anything looks wrong:
 sudo journalctl -u auction-search -f
 ```
 
-Note: the unit file runs the app as `www-data` and reads `/opt/auction-search/.env`.
-If you deployed to a different path, edit `WorkingDirectory` and
-`EnvironmentFile` in the unit file accordingly. `www-data` also needs read
-access to the app directory:
+Note: the unit file runs the app as the `deploy` user (the same one you created
+in step 2) and reads `/opt/auction-search/.env`. If you deployed to a different
+path or used a different admin username, edit `User`, `WorkingDirectory`, and
+`EnvironmentFile` in the unit file accordingly.
 
-```bash
-sudo chown -R www-data:www-data /opt/auction-search
-```
+Running it as `deploy` (rather than `www-data`) is deliberate: it keeps the
+app directory's ownership matching whoever actually maintains it day to day
+(`git pull`, editing `.env`, etc.), instead of creating an ownership mismatch
+that later blocks `git pull` with a "dubious ownership" error or permission
+denied errors when editing files. No `chown` is needed here — the directory
+should already be owned by `deploy` from step 6.
+
+> If you'd rather isolate the app under the more conventional `www-data`
+> service account instead, that's fine too — just remember that afterwards
+> `git pull` and file edits as `deploy` will need either
+> `sudo chown -R deploy:deploy /opt/auction-search` run first, or `sudo -u
+> www-data git pull` / doing maintenance as `www-data` instead.
 
 (If you'd rather run the service as the `deploy` user instead of `www-data`,
 change `User=www-data` in the unit file and skip the `chown` above.)

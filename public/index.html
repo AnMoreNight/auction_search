@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>オークション相場検索システム</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="4"/><path d="M3 12a9 9 0 0 1 9-9"/><path d="M21 12a9 9 0 0 1-9 9"/></svg>
+            </span>
+            <span class="brand-word">AUCTION SEARCH</span>
+        </div>
+
+        <div class="header-title">
+            <h1>オークション相場検索システム</h1>
+            <p class="header-sub">詳細キーワードで、過去の落札相場を素早く検索</p>
+        </div>
+
+        <div class="header-auth">
+            <span class="auth-status">
+                <svg viewBox="0 0 24 24" class="icon"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                ログイン中
+            </span>
+            <button id="headerUploadBtn" class="btn-secondary" type="button">
+                <svg viewBox="0 0 24 24" class="icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                CSVアップロード
+            </button>
+            <button id="logoutBtn" class="btn-ghost">ログアウト</button>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <section class="panel controls-panel">
+            <div class="controls-grid">
+                <div class="control-col">
+                    <div class="control-col-head">
+                        <span class="col-icon">
+                            <svg viewBox="0 0 24 24" class="icon"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>
+                        </span>
+                        <div>
+                            <h2>対象大会</h2>
+                            <p>検索の対象とする大会数を入力してください（空欄で全大会）</p>
+                        </div>
+                    </div>
+
+                    <div class="tournament-count-row">
+                        <input type="number" id="customCount" class="tournament-count-input" min="1" step="1" placeholder="空欄で全大会">
+                        <span class="unit-label">大会</span>
+                    </div>
+                    <p class="hint-text">例） 10 と入力すると直近10大会が対象になります</p>
+                </div>
+
+                <div class="control-col">
+                    <div class="control-col-head">
+                        <span class="col-icon">
+                            <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </span>
+                        <div>
+                            <h2>商品名検索</h2>
+                            <p>商品名・型番・キーワードで検索できます</p>
+                        </div>
+                    </div>
+
+                    <div class="search-input-row">
+                        <div class="search-input-wrap">
+                            <svg viewBox="0 0 24 24" class="icon search-input-icon"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="search" id="searchBox" placeholder="例）Nikon Ai-S 50mm f1.4" autocomplete="off" autofocus>
+                            <button id="clearSearchBtn" class="clear-btn" type="button" hidden aria-label="検索語をクリア">
+                                <svg viewBox="0 0 24 24" class="icon"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <button id="searchBtn" class="btn-primary">
+                            <svg viewBox="0 0 24 24" class="icon"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            検索
+                        </button>
+                    </div>
+                    <p class="hint-text">例） Nikon / Canon / OLYMPUS / PENTAX など</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel results-panel">
+            <div class="results-toolbar">
+                <div class="results-toolbar-left">
+                    <svg viewBox="0 0 24 24" class="icon"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    <span class="results-title">検索結果</span>
+                    <span class="count-badge" id="resultCountBadge">-</span>
+                    <span class="query-time" id="queryTime"></span>
+                </div>
+                <div class="results-toolbar-right">
+                    <label class="field-label" for="pageSizeSelect">表示件数</label>
+                    <select id="pageSizeSelect">
+                        <option value="20">20件</option>
+                        <option value="50" selected>50件</option>
+                        <option value="100">100件</option>
+                    </select>
+                    <nav class="pagination" id="pagination" aria-label="ページ送り"></nav>
+                </div>
+            </div>
+
+            <div id="loadingIndicator" class="loading" hidden><span class="spinner"></span>検索中...</div>
+
+            <div id="resultsWrap">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th class="col-auction sortable" data-sort="auction_no">大会<span class="sort-icon"></span></th>
+                            <th class="col-box sortable" data-sort="box_no">箱番号<span class="sort-icon"></span></th>
+                            <th class="col-branch sortable" data-sort="branch_no">枝番号<span class="sort-icon"></span></th>
+                            <th class="col-detail">詳細</th>
+                            <th class="col-rank sortable" data-sort="rank">ランク<span class="sort-icon"></span></th>
+                            <th class="col-price sortable" data-sort="price">金額<span class="sort-icon"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+                <p id="emptyState" class="empty-state" hidden>該当する結果がありません。</p>
+            </div>
+
+            <div class="results-footer">
+                <span id="resultRangeText"></span>
+                <div class="results-footer-right">
+                    <span id="lastUpdatedText" class="last-updated-text"></span>
+                    <button id="refreshBtn" class="btn-ghost" type="button">
+                        <svg viewBox="0 0 24 24" class="icon"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        最新の情報に更新
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <span>オークション相場検索システム</span>
+        <span>詳細キーワードによる高速検索対応</span>
+    </footer>
+
+    <div id="uploadModalOverlay" class="modal-overlay" hidden>
+        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+            <div class="modal-header">
+                <span class="col-icon">
+                    <svg viewBox="0 0 24 24" class="icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                </span>
+                <div>
+                    <h2 id="uploadModalTitle">CSVアップロード</h2>
+                    <p>大会データのCSVファイルをアップロードできます</p>
+                </div>
+                <button id="closeUploadModalBtn" class="modal-close" type="button" aria-label="閉じる">
+                    <svg viewBox="0 0 24 24" class="icon"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="upload-row">
+                <div class="file-picker">
+                    <input type="file" id="csvFile" accept=".csv,text/csv">
+                    <label for="csvFile" class="file-picker-btn">ファイルを選択</label>
+                    <span id="csvFileName" class="file-picker-name">選択されていません</span>
+                </div>
+                <button id="uploadBtn" class="btn-primary">
+                    <svg viewBox="0 0 24 24" class="icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    アップロード
+                </button>
+            </div>
+            <div id="uploadStatus" class="upload-status"></div>
+            <p class="hint-text">対応形式：CSV（最大50MB）</p>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

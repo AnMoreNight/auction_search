@@ -1,0 +1,15 @@
+[Unit]
+Description=Auction price database search system
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/auction-search
+EnvironmentFile=/opt/auction-search/.env
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

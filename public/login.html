@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>ログイン | オークション相場検索システム</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-body">
+    <main class="login-card">
+        <span class="login-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="icon"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <h1>オークション相場検索システム</h1>
+        <p class="login-sub">パスワードを入力してください</p>
+        <form id="loginForm" autocomplete="off">
+            <input type="password" id="password" name="password" placeholder="パスワード" required autofocus>
+            <button type="submit" class="btn-primary">ログイン</button>
+        </form>
+        <p id="loginError" class="error-text" hidden></p>
+    </main>
+    <script src="js/login.js"></script>
+</body>
+</html>

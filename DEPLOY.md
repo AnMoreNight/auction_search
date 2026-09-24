@@ -140,11 +140,22 @@ Set at minimum:
 ```
 PORT=3000
 NODE_ENV=production
-DATABASE_URL=postgres://auction_user:CHANGE_ME_TO_A_STRONG_PASSWORD@localhost:5432/auction_db
+DATABASE_URL=postgres://auction_user:<the SAME password you set in step 4>@localhost:5432/auction_db
 SESSION_SECRET=<generate a long random string>
 APP_PASSWORD=<the shared login password for your team>
 TRUST_PROXY=1
+COOKIE_SECURE=false
 ```
+
+> ⚠️ `DATABASE_URL`'s password must be the **literal password you chose** when running
+> `CREATE USER auction_user WITH PASSWORD '...'` in step 4 — not placeholder text copied
+> as-is. If they don't match exactly, `npm run migrate` fails with "password authentication
+> failed for user auction_user".
+>
+> Leave `COOKIE_SECURE=false` for now. It must stay `false` until HTTPS is actually working
+> (step 12) — turning it on early makes login appear to succeed but immediately bounce back
+> to the login page, because the browser silently refuses to send a Secure cookie over plain
+> HTTP.
 
 Generate a strong `SESSION_SECRET` quickly with:
 
@@ -259,6 +270,16 @@ Certbot edits the Nginx config to add a `listen 443 ssl;` block and sets up
 auto-renewal. Without a domain (IP-only access), you can skip this, but be
 aware traffic (including the login password) won't be encrypted — fine for
 quick testing, not recommended for real use.
+
+**Once HTTPS is confirmed working**, flip the session cookie back to secure mode:
+
+```bash
+nano .env   # set COOKIE_SECURE=true
+sudo systemctl restart auction-search
+```
+
+Skip this while you're still on IP-only HTTP — leave `COOKIE_SECURE=false` until
+this step is actually done, or login will silently break (see step 7's note).
 
 ## 13. Verify everything works
 

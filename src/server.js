@@ -32,7 +32,12 @@ app.use(
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            // Deliberately NOT tied to NODE_ENV: a Secure cookie is only ever sent
+            // by the browser over HTTPS, so turning this on before HTTPS is actually
+            // configured (see DEPLOY.md) silently breaks login - the cookie gets set
+            // on login but never sent back on the next request. Opt in explicitly
+            // once HTTPS is live.
+            secure: process.env.COOKIE_SECURE === 'true',
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         },

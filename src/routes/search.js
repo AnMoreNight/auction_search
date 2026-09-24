@@ -40,25 +40,12 @@ router.get('/search', async (req, res) => {
         const offset = (page - 1) * pageSize;
 
         const keywords = splitKeywords(q);
-        const whereParts = [];
-        const params = [];
-
-        if (scope === 'recent') {
-            params.push(count);
-            whereParts.push(`auction_no >= (
-                SELECT MIN(auction_no) FROM (
-                    SELECT DISTINCT auction_no FROM auction_items
-                    ORDER BY auction_no DESC LIMIT $${params.length}
-                ) recent_auctions
-            )`);
-        }
-
+        const keywordParams = [];
+        const keywordWhereParts = [];
         keywords.forEach((kw) => {
-            params.push(`%${escapeLikeToken(kw)}%`);
-            whereParts.push(`detail ILIKE $${params.length} ESCAPE '\\'`);
+            keywordParams.push(`%${escapeLikeToken(kw)}%`);
+            keywordWhereParts.push(`detail ILIKE $${keywordParams.length} ESCAPE '\\'`);
         });
-
-        const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
 
         const sortColumn = SORTABLE_COLUMNS[req.query.sortBy] || 'auction_no';
         const sortDir = req.query.sortDir === 'asc' ? 'ASC' : 'DESC';
@@ -66,27 +53,67 @@ router.get('/search', async (req, res) => {
             ? `auction_no ${sortDir}, box_no ASC NULLS LAST, branch_no ASC NULLS LAST`
             : `${sortColumn} ${sortDir} NULLS LAST, auction_no DESC`;
 
-        params.push(pageSize);
-        const limitParamIdx = params.length;
-        params.push(offset);
-        const offsetParamIdx = params.length;
+        let sql;
+        let params;
 
-        const sql = `
-            SELECT
-                id,
-                auction_no,
-                box_no,
-                branch_no,
-                price,
-                maker,
-                detail,
-                rank,
-                COUNT(*) OVER() AS total_count
-            FROM auction_items
-            ${whereSql}
-            ORDER BY ${orderSql}
-            LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
-        `;
+        if (scope === 'recent' && keywords.length > 0) {
+            // "Recent N tournaments" must be computed from the keyword-matched rows,
+            // not the whole table - otherwise a search can land on zero results just
+            // because the globally most-recent N tournaments happen not to contain a
+            // match, even though the keyword clearly exists in older tournaments.
+            // (Only needed when a keyword is present: with no keyword "matched" is
+            // the whole table anyway, so the simpler indexed query below is used
+            // instead to avoid materializing/scanning the whole table twice.)
+            params = [...keywordParams, count];
+            const countParamIdx = params.length;
+            params.push(pageSize, offset);
+
+            sql = `
+                WITH matched AS (
+                    SELECT * FROM auction_items WHERE ${keywordWhereParts.join(' AND ')}
+                )
+                SELECT
+                    id, auction_no, box_no, branch_no, price, maker, detail, rank,
+                    COUNT(*) OVER() AS total_count
+                FROM matched
+                WHERE auction_no >= (
+                    SELECT MIN(auction_no) FROM (
+                        SELECT DISTINCT auction_no FROM matched
+                        ORDER BY auction_no DESC LIMIT $${countParamIdx}
+                    ) recent_auctions
+                )
+                ORDER BY ${orderSql}
+                LIMIT $${params.length - 1} OFFSET $${params.length}
+            `;
+        } else {
+            const whereParts = [...keywordWhereParts];
+            params = [...keywordParams];
+            if (scope === 'recent') {
+                params.push(count);
+                whereParts.push(`auction_no >= (
+                    SELECT MIN(auction_no) FROM (
+                        SELECT DISTINCT auction_no FROM auction_items
+                        ORDER BY auction_no DESC LIMIT $${params.length}
+                    ) recent_auctions
+                )`);
+            }
+            const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
+
+            params.push(pageSize);
+            const limitParamIdx = params.length;
+            params.push(offset);
+            const offsetParamIdx = params.length;
+
+            sql = `
+                SELECT
+                    id, auction_no, box_no, branch_no, price, maker, detail, rank,
+                    COUNT(*) OVER() AS total_count
+                FROM auction_items
+                ${whereSql}
+                ORDER BY ${orderSql}
+                LIMIT $${limitParamIdx} OFFSET $${offsetParamIdx}
+            `;
+        }
 
         const result = await pool.query(sql, params);
         const total = result.rows.length > 0 ? Number(result.rows[0].total_count) : 0;

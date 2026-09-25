@@ -28,11 +28,20 @@
     const passwordModalOverlay = document.getElementById('passwordModalOverlay');
     const closePasswordModalBtn = document.getElementById('closePasswordModalBtn');
     const passwordForm = document.getElementById('passwordForm');
-    const currentPasswordInput = document.getElementById('currentPasswordInput');
+    const adminPasswordInput = document.getElementById('adminPasswordInput');
     const newPasswordInput = document.getElementById('newPasswordInput');
     const newPasswordConfirmInput = document.getElementById('newPasswordConfirmInput');
     const passwordStatus = document.getElementById('passwordStatus');
     const changePasswordSubmitBtn = document.getElementById('changePasswordSubmitBtn');
+    const tabLoginPwBtn = document.getElementById('tabLoginPwBtn');
+    const tabAdminPwBtn = document.getElementById('tabAdminPwBtn');
+    const passwordTabSlider = document.getElementById('passwordTabSlider');
+    const adminPasswordForm = document.getElementById('adminPasswordForm');
+    const currentAdminPasswordInput = document.getElementById('currentAdminPasswordInput');
+    const newAdminPasswordInput = document.getElementById('newAdminPasswordInput');
+    const newAdminPasswordConfirmInput = document.getElementById('newAdminPasswordConfirmInput');
+    const adminPasswordStatus = document.getElementById('adminPasswordStatus');
+    const changeAdminPasswordSubmitBtn = document.getElementById('changeAdminPasswordSubmitBtn');
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10) || 50;
@@ -251,12 +260,37 @@
         if (e.target === uploadModalOverlay) closeUploadModal();
     });
 
+    function showLoginPwTab() {
+        tabLoginPwBtn.classList.add('active');
+        tabLoginPwBtn.setAttribute('aria-selected', 'true');
+        tabAdminPwBtn.classList.remove('active');
+        tabAdminPwBtn.setAttribute('aria-selected', 'false');
+        passwordTabSlider.style.transform = 'translateX(0)';
+        adminPasswordInput.focus();
+    }
+    function showAdminPwTab() {
+        tabAdminPwBtn.classList.add('active');
+        tabAdminPwBtn.setAttribute('aria-selected', 'true');
+        tabLoginPwBtn.classList.remove('active');
+        tabLoginPwBtn.setAttribute('aria-selected', 'false');
+        // Pixel offset computed from the actual viewport width rather than a
+        // CSS percentage transform - see the note in style.css for why.
+        const viewportWidth = passwordTabSlider.parentElement.clientWidth;
+        passwordTabSlider.style.transform = `translateX(-${viewportWidth}px)`;
+        currentAdminPasswordInput.focus();
+    }
+    tabLoginPwBtn.addEventListener('click', showLoginPwTab);
+    tabAdminPwBtn.addEventListener('click', showAdminPwTab);
+
     function openPasswordModal() {
         passwordForm.reset();
+        adminPasswordForm.reset();
         passwordStatus.className = 'upload-status';
         passwordStatus.textContent = '';
+        adminPasswordStatus.className = 'upload-status';
+        adminPasswordStatus.textContent = '';
         passwordModalOverlay.hidden = false;
-        currentPasswordInput.focus();
+        showLoginPwTab();
     }
     function closePasswordModal() { passwordModalOverlay.hidden = true; }
 
@@ -268,7 +302,7 @@
 
     passwordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const currentPassword = currentPasswordInput.value;
+        const adminPassword = adminPasswordInput.value;
         const newPassword = newPasswordInput.value;
         const newPasswordConfirm = newPasswordConfirmInput.value;
 
@@ -291,7 +325,7 @@
             const res = await fetch('/api/change-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ currentPassword, newPassword }),
+                body: JSON.stringify({ adminPassword, newPassword }),
             });
             const data = await res.json();
             if (res.status === 401 && data.error === 'ログインが必要です。') {
@@ -308,6 +342,51 @@
             passwordStatus.textContent = err.message || 'パスワード変更中にエラーが発生しました。';
         } finally {
             changePasswordSubmitBtn.disabled = false;
+        }
+    });
+
+    adminPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentAdminPassword = currentAdminPasswordInput.value;
+        const newAdminPassword = newAdminPasswordInput.value;
+        const newAdminPasswordConfirm = newAdminPasswordConfirmInput.value;
+
+        if (newAdminPassword !== newAdminPasswordConfirm) {
+            adminPasswordStatus.className = 'upload-status error';
+            adminPasswordStatus.textContent = '新しい管理者パスワードが一致しません。';
+            return;
+        }
+        if (newAdminPassword.length < 4) {
+            adminPasswordStatus.className = 'upload-status error';
+            adminPasswordStatus.textContent = '新しい管理者パスワードは4文字以上で入力してください。';
+            return;
+        }
+
+        changeAdminPasswordSubmitBtn.disabled = true;
+        adminPasswordStatus.className = 'upload-status';
+        adminPasswordStatus.textContent = '変更中...';
+
+        try {
+            const res = await fetch('/api/change-admin-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentAdminPassword, newAdminPassword }),
+            });
+            const data = await res.json();
+            if (res.status === 401 && data.error === 'ログインが必要です。') {
+                window.location.href = '/login.html';
+                return;
+            }
+            if (!res.ok) throw new Error(data.error || '管理者パスワード変更に失敗しました。');
+
+            adminPasswordStatus.className = 'upload-status success';
+            adminPasswordStatus.textContent = '管理者パスワードを変更しました。';
+            adminPasswordForm.reset();
+        } catch (err) {
+            adminPasswordStatus.className = 'upload-status error';
+            adminPasswordStatus.textContent = err.message || '管理者パスワード変更中にエラーが発生しました。';
+        } finally {
+            changeAdminPasswordSubmitBtn.disabled = false;
         }
     });
 

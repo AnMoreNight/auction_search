@@ -143,8 +143,36 @@ NODE_ENV=production
 DATABASE_URL=postgres://auction_user:<the SAME password you set in step 4>@localhost:5432/auction_db
 SESSION_SECRET=<generate a long random string>
 APP_PASSWORD=<the shared login password for your team>
+ADMIN_PASSWORD=<a separate password only the administrator should know>
 TRUST_PROXY=1
 COOKIE_SECURE=false
+```
+
+`ADMIN_PASSWORD` is deliberately separate from `APP_PASSWORD`: anyone with the
+shared login password can search and upload CSVs, but changing the login
+password itself (via the "パスワード変更" button) additionally requires this
+admin password. Don't share it with regular users of the system.
+
+Like `APP_PASSWORD`, this value only seeds the database the first time the
+server starts - after that, both passwords are managed entirely from the
+"パスワード変更" dialog in the app (it has two tabs: one to change the shared
+login password, one to change the admin password itself).
+
+There's no in-app recovery if the admin password is forgotten. If that
+happens, reset it directly from the VPS:
+
+```bash
+cd /opt/auction-search
+node -e "
+const bcrypt = require('bcryptjs');
+const { Pool } = require('pg');
+require('dotenv').config();
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const newAdminPassword = 'PutYourNewAdminPasswordHere';
+bcrypt.hash(newAdminPassword, 10).then(hash =>
+  pool.query(\"UPDATE users SET password_hash = \$1 WHERE username = 'admin_secret'\", [hash])
+).then(() => { console.log('Admin password reset.'); pool.end(); });
+"
 ```
 
 > ⚠️ `DATABASE_URL`'s password must be the **literal password you chose** when running

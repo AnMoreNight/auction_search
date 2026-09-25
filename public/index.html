@@ -180,34 +180,62 @@
     </div>
 
     <div id="passwordModalOverlay" class="modal-overlay" hidden>
-        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
+        <div class="modal-dialog password-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
             <div class="modal-header">
                 <span class="col-icon">
                     <svg viewBox="0 0 24 24" class="icon"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3L22 7l-3-3"/></svg>
                 </span>
                 <div>
-                    <h2 id="passwordModalTitle">パスワード変更</h2>
-                    <p>ログイン用の共有パスワードを変更できます</p>
+                    <h2 id="passwordModalTitle">パスワード管理</h2>
+                    <p>変更する項目を選択してください</p>
                 </div>
                 <button id="closePasswordModalBtn" class="modal-close" type="button" aria-label="閉じる">
                     <svg viewBox="0 0 24 24" class="icon"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
-            <form id="passwordForm" class="password-form" autocomplete="off">
-                <label class="field-label" for="currentPasswordInput">現在のパスワード</label>
-                <input type="password" id="currentPasswordInput" required autocomplete="current-password">
+            <div class="tab-switcher" role="tablist">
+                <button type="button" class="tab-btn active" id="tabLoginPwBtn" role="tab" aria-selected="true">ログインパスワード</button>
+                <button type="button" class="tab-btn" id="tabAdminPwBtn" role="tab" aria-selected="false">管理者パスワード</button>
+            </div>
 
-                <label class="field-label" for="newPasswordInput">新しいパスワード</label>
-                <input type="password" id="newPasswordInput" required minlength="4" autocomplete="new-password">
+            <div class="tab-slider-viewport">
+                <div class="tab-slider" id="passwordTabSlider">
+                    <div class="tab-panel" role="tabpanel">
+                        <form id="passwordForm" class="password-form" autocomplete="off">
+                            <label class="field-label" for="adminPasswordInput">管理者パスワード</label>
+                            <input type="password" id="adminPasswordInput" required autocomplete="off">
 
-                <label class="field-label" for="newPasswordConfirmInput">新しいパスワード（確認）</label>
-                <input type="password" id="newPasswordConfirmInput" required minlength="4" autocomplete="new-password">
+                            <label class="field-label" for="newPasswordInput">新しいログインパスワード</label>
+                            <input type="password" id="newPasswordInput" required minlength="4" autocomplete="new-password">
 
-                <button id="changePasswordSubmitBtn" type="submit" class="btn-primary">パスワードを変更</button>
-            </form>
-            <div id="passwordStatus" class="upload-status"></div>
-            <p class="hint-text">4文字以上で設定してください。変更後は新しいパスワードでログインしてください。</p>
+                            <label class="field-label" for="newPasswordConfirmInput">新しいログインパスワード（確認）</label>
+                            <input type="password" id="newPasswordConfirmInput" required minlength="4" autocomplete="new-password">
+
+                            <button id="changePasswordSubmitBtn" type="submit" class="btn-primary">ログインパスワードを変更</button>
+                        </form>
+                        <div id="passwordStatus" class="upload-status"></div>
+                        <p class="hint-text">全員が使うログインパスワードを変更します。管理者パスワードの入力が必要です。</p>
+                    </div>
+
+                    <div class="tab-panel" role="tabpanel">
+                        <form id="adminPasswordForm" class="password-form" autocomplete="off">
+                            <label class="field-label" for="currentAdminPasswordInput">現在の管理者パスワード</label>
+                            <input type="password" id="currentAdminPasswordInput" required autocomplete="off">
+
+                            <label class="field-label" for="newAdminPasswordInput">新しい管理者パスワード</label>
+                            <input type="password" id="newAdminPasswordInput" required minlength="4" autocomplete="new-password">
+
+                            <label class="field-label" for="newAdminPasswordConfirmInput">新しい管理者パスワード（確認）</label>
+                            <input type="password" id="newAdminPasswordConfirmInput" required minlength="4" autocomplete="new-password">
+
+                            <button id="changeAdminPasswordSubmitBtn" type="submit" class="btn-primary">管理者パスワードを変更</button>
+                        </form>
+                        <div id="adminPasswordStatus" class="upload-status"></div>
+                        <p class="hint-text">パスワード変更機能を保護する管理者専用パスワードです。他の利用者には共有しないでください。</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

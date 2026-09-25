@@ -145,11 +145,12 @@ router.get('/search', async (req, res) => {
 router.get('/tournaments/latest', async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT MAX(auction_no) AS latest, COUNT(DISTINCT auction_no) AS total, MAX(updated_at) AS last_updated FROM auction_items'
+            'SELECT MAX(auction_no) AS latest, COUNT(DISTINCT auction_no) AS total, COUNT(*) AS total_records, MAX(updated_at) AS last_updated FROM auction_items'
         );
         res.json({
             latest: result.rows[0].latest,
             totalTournaments: Number(result.rows[0].total || 0),
+            totalRecords: Number(result.rows[0].total_records || 0),
             lastUpdated: result.rows[0].last_updated,
         });
     } catch (err) {

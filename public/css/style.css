@@ -16,6 +16,8 @@
     --color-success-soft: rgba(52, 211, 153, 0.12);
     --color-warning: #fbbf24;
     --color-warning-soft: rgba(251, 191, 36, 0.14);
+    --color-orange: #fb923c;
+    --color-orange-soft: rgba(251, 146, 60, 0.14);
     --radius-sm: 6px;
     --radius: 10px;
     --radius-lg: 14px;
@@ -249,6 +251,21 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .header-title { text-align: center; }
 .header-title h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
 .header-sub { margin: 2px 0 0; font-size: 0.78rem; color: var(--color-text-muted); }
+
+.header-data-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.header-data-count .icon { width: 12px; height: 12px; }
 
 .header-auth { display: flex; align-items: center; gap: 12px; justify-self: end; }
 .header-auth button { height: 38px; font-size: 0.85rem; }
@@ -557,11 +574,14 @@ th.sort-desc .sort-icon::before { content: "\25BC"; }
     color: var(--color-text-muted);
     border: 1px solid var(--color-border);
 }
+/* Rank color scale, best to worst: A(blue) - B(green) - C(amber) - D(orange) - J(red).
+   J = ジャンク(junk/for-parts condition) is shown in red per client request. */
 .rank-S { background: var(--color-warning-soft); color: var(--color-warning); border-color: rgba(251, 191, 36, 0.35); }
 .rank-A { background: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary-ring); }
 .rank-B { background: var(--color-success-soft); color: var(--color-success); border-color: rgba(52, 211, 153, 0.3); }
-.rank-C { background: var(--color-field); color: var(--color-text-muted); border-color: var(--color-border-strong); }
-.rank-D { background: var(--color-danger-soft); color: var(--color-danger); border-color: rgba(245, 101, 101, 0.3); }
+.rank-C { background: var(--color-warning-soft); color: var(--color-warning); border-color: rgba(251, 191, 36, 0.35); }
+.rank-D { background: var(--color-orange-soft); color: var(--color-orange); border-color: rgba(251, 146, 60, 0.35); }
+.rank-J { background: var(--color-danger-soft); color: var(--color-danger); border-color: rgba(245, 101, 101, 0.4); font-weight: 800; }
 
 .empty-state { text-align: center; color: var(--color-text-muted); padding: 40px 0; font-size: 0.9rem; }
 

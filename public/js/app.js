@@ -18,6 +18,7 @@
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadStatus = document.getElementById('uploadStatus');
     const lastUpdatedText = document.getElementById('lastUpdatedText');
+    const headerDataCountValue = document.getElementById('headerDataCountValue');
     const refreshBtn = document.getElementById('refreshBtn');
     const sortableHeaders = document.querySelectorAll('.results-table th.sortable');
     const headerUploadBtn = document.getElementById('headerUploadBtn');
@@ -54,9 +55,12 @@
     }
 
     function renderRank(rank) {
-        const clean = String(rank ?? '').trim();
+        let clean = String(rank ?? '').trim();
         if (!clean) return '';
-        const cssClass = /^[A-Za-z]$/.test(clean) ? ` rank-${clean.toUpperCase()}` : '';
+        // Source data mixes full-width letters (Ｊ Ｂ Ｃ Ａ) and lowercase (j c) in
+        // with the plain ones - normalize so e.g. "Ｊ" gets colored the same as "J".
+        clean = clean.replace(/[Ａ-Ｚ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).toUpperCase();
+        const cssClass = /^[A-Z]$/.test(clean) ? ` rank-${clean}` : '';
         return `<span class="rank-badge${cssClass}">${escapeHtml(clean)}</span>`;
     }
 
@@ -253,6 +257,7 @@
             lastUpdatedText.textContent = data.lastUpdated
                 ? `最終更新：${dateFmt.format(new Date(data.lastUpdated))}`
                 : '';
+            headerDataCountValue.textContent = yen.format(data.totalRecords || 0);
         } catch (err) {
             // Non-critical; leave the last-updated label blank on failure.
         }

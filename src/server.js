@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 
 const { pool } = require('./db');
+const { ensurePasswordSeeded } = require('./authStore');
 const requireAuth = require('./middleware/requireAuth');
 const authRoutes = require('./routes/auth');
 const searchRoutes = require('./routes/search');
@@ -65,6 +66,10 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'サーバーエラーが発生しました。' });
 });
 
-app.listen(PORT, () => {
-    console.log(`Auction search server listening on port ${PORT}`);
-});
+ensurePasswordSeeded()
+    .catch((err) => console.error('Failed to seed initial password:', err))
+    .finally(() => {
+        app.listen(PORT, () => {
+            console.log(`Auction search server listening on port ${PORT}`);
+        });
+    });

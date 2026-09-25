@@ -24,6 +24,15 @@
     const headerUploadBtn = document.getElementById('headerUploadBtn');
     const uploadModalOverlay = document.getElementById('uploadModalOverlay');
     const closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const passwordModalOverlay = document.getElementById('passwordModalOverlay');
+    const closePasswordModalBtn = document.getElementById('closePasswordModalBtn');
+    const passwordForm = document.getElementById('passwordForm');
+    const currentPasswordInput = document.getElementById('currentPasswordInput');
+    const newPasswordInput = document.getElementById('newPasswordInput');
+    const newPasswordConfirmInput = document.getElementById('newPasswordConfirmInput');
+    const passwordStatus = document.getElementById('passwordStatus');
+    const changePasswordSubmitBtn = document.getElementById('changePasswordSubmitBtn');
 
     let currentPage = 1;
     let pageSize = parseInt(pageSizeSelect.value, 10) || 50;
@@ -241,8 +250,71 @@
     uploadModalOverlay.addEventListener('click', (e) => {
         if (e.target === uploadModalOverlay) closeUploadModal();
     });
+
+    function openPasswordModal() {
+        passwordForm.reset();
+        passwordStatus.className = 'upload-status';
+        passwordStatus.textContent = '';
+        passwordModalOverlay.hidden = false;
+        currentPasswordInput.focus();
+    }
+    function closePasswordModal() { passwordModalOverlay.hidden = true; }
+
+    changePasswordBtn.addEventListener('click', openPasswordModal);
+    closePasswordModalBtn.addEventListener('click', closePasswordModal);
+    passwordModalOverlay.addEventListener('click', (e) => {
+        if (e.target === passwordModalOverlay) closePasswordModal();
+    });
+
+    passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = currentPasswordInput.value;
+        const newPassword = newPasswordInput.value;
+        const newPasswordConfirm = newPasswordConfirmInput.value;
+
+        if (newPassword !== newPasswordConfirm) {
+            passwordStatus.className = 'upload-status error';
+            passwordStatus.textContent = '新しいパスワードが一致しません。';
+            return;
+        }
+        if (newPassword.length < 4) {
+            passwordStatus.className = 'upload-status error';
+            passwordStatus.textContent = '新しいパスワードは4文字以上で入力してください。';
+            return;
+        }
+
+        changePasswordSubmitBtn.disabled = true;
+        passwordStatus.className = 'upload-status';
+        passwordStatus.textContent = '変更中...';
+
+        try {
+            const res = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+            const data = await res.json();
+            if (res.status === 401 && data.error === 'ログインが必要です。') {
+                window.location.href = '/login.html';
+                return;
+            }
+            if (!res.ok) throw new Error(data.error || 'パスワード変更に失敗しました。');
+
+            passwordStatus.className = 'upload-status success';
+            passwordStatus.textContent = 'パスワードを変更しました。次回ログインから新しいパスワードを使用してください。';
+            passwordForm.reset();
+        } catch (err) {
+            passwordStatus.className = 'upload-status error';
+            passwordStatus.textContent = err.message || 'パスワード変更中にエラーが発生しました。';
+        } finally {
+            changePasswordSubmitBtn.disabled = false;
+        }
+    });
+
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !uploadModalOverlay.hidden) closeUploadModal();
+        if (e.key !== 'Escape') return;
+        if (!uploadModalOverlay.hidden) closeUploadModal();
+        if (!passwordModalOverlay.hidden) closePasswordModal();
     });
 
     csvFile.addEventListener('change', () => {

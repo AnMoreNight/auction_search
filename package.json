@@ -11,6 +11,7 @@
     "migrate": "node scripts/migrate.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "connect-pg-simple": "^10.0.0",
     "csv-parse": "^7.0.2",

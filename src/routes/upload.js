@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const { pool } = require('../db');
-const { mapHeaders, parseRow, compositeKey } = require('../importUtils');
+const { mapHeaders, parseRow, compositeKey, decodeCsvBuffer } = require('../importUtils');
 
 const router = express.Router();
 
@@ -48,7 +48,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
     let rows;
     try {
-        const content = req.file.buffer.toString('utf8');
+        const content = decodeCsvBuffer(req.file.buffer);
         rows = parse(content, {
             skip_empty_lines: true,
             relax_column_count: true,

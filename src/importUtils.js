@@ -1,5 +1,20 @@
 // Shared CSV row mapping/validation used by both the web upload endpoint
 // and the CLI bulk-import script, so the two stay in sync.
+const iconv = require('iconv-lite');
+
+// Decodes a raw CSV file buffer to a JS string, auto-detecting UTF-8 vs
+// Shift_JIS/CP932. Google Sheets exports UTF-8, but CSVs prepared or
+// re-saved via Excel on Japanese Windows are commonly CP932 instead - opening
+// those as UTF-8 produces garbled/unmatchable header text (mojibake).
+function decodeCsvBuffer(buffer) {
+    // A buffer round-trips through UTF-8 decode+re-encode unchanged only if it
+    // was well-formed UTF-8 to begin with (invalid byte sequences get replaced
+    // with U+FFFD on decode, which would re-encode differently) - a simple,
+    // dependency-free way to detect "is this actually UTF-8?".
+    const isValidUtf8 = Buffer.from(buffer.toString('utf8'), 'utf8').equals(buffer);
+    if (isValidUtf8) return buffer.toString('utf8');
+    return iconv.decode(buffer, 'CP932');
+}
 
 // Japanese header -> internal column name. Trimmed and BOM-stripped before lookup.
 // Note: an "ID" column is intentionally NOT mapped here. The source CSV's ID
@@ -120,4 +135,4 @@ function compositeKey(record) {
     return [record.auction_no, record.box_no, record.branch_no].join('\x1f');
 }
 
-module.exports = { HEADER_MAP, mapHeaders, parseRow, normalizeHeader, compositeKey };
+module.exports = { HEADER_MAP, mapHeaders, parseRow, normalizeHeader, compositeKey, decodeCsvBuffer };

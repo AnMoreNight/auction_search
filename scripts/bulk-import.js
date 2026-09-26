@@ -10,7 +10,7 @@ const path = require('path');
 const { parse } = require('csv-parse/sync');
 const { from: copyFrom } = require('pg-copy-streams');
 const { pool } = require('../src/db');
-const { mapHeaders, parseRow, compositeKey } = require('../src/importUtils');
+const { mapHeaders, parseRow, compositeKey, decodeCsvBuffer } = require('../src/importUtils');
 
 const COLUMNS = ['auction_no', 'box_no', 'branch_no', 'price', 'detail', 'rank'];
 
@@ -31,7 +31,7 @@ async function main() {
         process.exit(1);
     }
 
-    const content = fs.readFileSync(path.resolve(filePath), 'utf8');
+    const content = decodeCsvBuffer(fs.readFileSync(path.resolve(filePath)));
     const rows = parse(content, { skip_empty_lines: true, relax_column_count: true });
     if (rows.length === 0) {
         console.error('CSV is empty.');

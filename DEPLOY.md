@@ -206,7 +206,9 @@ see note below).
 
 ## 9. Migrate the existing ~100,000 records
 
-Export the current Google Sheets data as **UTF-8 CSV**, with header row:
+Export the current Google Sheets data as CSV (UTF-8 or Shift_JIS/CP932 are
+both auto-detected — Excel-saved CSVs on Japanese Windows are commonly
+Shift_JIS, and that's handled automatically), with header row:
 
 ```
 大会,箱番号,枝番号,商品詳細,ランク,金額
